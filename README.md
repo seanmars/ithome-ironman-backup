@@ -1,11 +1,9 @@
-# IThome Ironman Scraper
+# IThome Ironman Backup
 
-IThome 鐵人賽的爬蟲程式，爬取每個主題的標題與連結，並將結果存成 sqlite 檔案。
+iThome 鐵人賽的文章備份區。備份的文章會以瀏覽器的形式呈現，方便閱讀與瀏覽。
 
-## Requirements
-
-- Python 3
-- uv
-- requests
-- Playwright
-- sqlite3
+- **備份的文章僅是自己覺得喜歡的內容。**
+- **請尊重原作者的著作權，勿將備份的內容用於商業用途。**
+- **若有任何侵權問題，請聯絡我進行移除。**
+- **本專案僅供個人學習與研究使用。**
+- **本專案與 iThome 無任何關係。**
