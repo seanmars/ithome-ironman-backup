@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10388173
 
-![day26](https://hackmd.io/_uploads/r12owvQ3eg.png)
+![day26](media/da6eb5a6-ff4f-4638-8555-57362be38ae6.png)
 
 > 這邊有幾個『假設』性情境供參考
 

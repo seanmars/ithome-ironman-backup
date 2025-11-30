@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10384037
 
-![day20](https://hackmd.io/_uploads/r1zC_Dhioll.png)
+![day20](media/3c00857a-cde2-45a0-b787-72ce5ea0c5ea.png)
 
 > 情緒價值不代表情緒綁架。成熟的牛郎懂得溫柔，也懂得保護自己。
 

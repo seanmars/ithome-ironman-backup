@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10378968
 
-![day11-1](https://hackmd.io/_uploads/Sy0RgE4qxl.png)  
+![day11-1](media/1b585c98-94f2-480c-b104-006402dbdd87.png)  
 (AI因為政策關係，沒辦法做出被騷擾的情境，只能讓她端碗豆腐
 
 > 客人不斷丟需求的時候，最需要的不是火氣，而是耐心與技巧。

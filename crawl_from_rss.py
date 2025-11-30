@@ -11,9 +11,12 @@ RSS 文章抓取並轉換為 Markdown
 import asyncio
 import json
 import re
+import uuid
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from urllib.parse import urlparse
 
+import httpx
 from markdownify import markdownify as md
 from playwright.async_api import async_playwright, Playwright
 
@@ -166,7 +169,8 @@ async def fetch_rss_content_async(playwright: Playwright, rss_url: str) -> tuple
         if title_elem is not None and title_elem.text:
             series_title = title_elem.text
             # 清理標題
-            series_title = re.sub(r"\s*::\s*\d+\s*iThome\s*鐵人賽.*$", "", series_title)
+            series_title = re.sub(
+                r"\s*::\s*\d+\s*iThome\s*鐵人賽.*$", "", series_title)
 
         # 遍歷所有 item
         for item in channel.findall("item"):
@@ -372,7 +376,245 @@ async def process_series_async(playwright: Playwright, series_url: str, base_out
         if save_article_as_markdown(title, link, markdown_content, output_dir):
             success_count += 1
 
+    # Step 4: 處理文章中的圖片
+    print(f"  [Step 4] 處理文章中的圖片...")
+    stats = await process_images_in_series(output_dir)
+    print(
+        f"    圖片統計: 文章數={stats['article_count']}, 圖片數={stats['image_count']}, 成功={stats['download_success']}, 失敗={stats['download_failed']}")
+
     return success_count
+
+
+async def download_image_async(url: str, save_path: Path) -> bool:
+    """
+    下載圖片並儲存到指定路徑
+
+    Args:
+        url: 圖片 URL
+        save_path: 儲存路徑
+
+    Returns:
+        是否成功下載
+    """
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Referer": "https://ithelp.ithome.com.tw/",
+    }
+    try:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True, verify=False, headers=headers) as client:
+            response = await client.get(url)
+            if response.status_code == 200:
+                save_path.write_bytes(response.content)
+                return True
+            else:
+                print(f"      下載失敗 (狀態碼 {response.status_code}): {url}")
+                return False
+    except Exception as e:
+        print(f"      下載錯誤: {url} - {e}")
+        return False
+
+
+def get_image_extension(url: str, default: str = ".png") -> str:
+    """
+    從 URL 取得圖片副檔名
+
+    Args:
+        url: 圖片 URL
+        default: 預設副檔名
+
+    Returns:
+        副檔名 (包含點號)
+    """
+    parsed = urlparse(url)
+    path = parsed.path.lower()
+
+    # 常見圖片格式
+    extensions = [".png", ".jpg", ".jpeg",
+                  ".gif", ".webp", ".svg", ".bmp", ".ico"]
+    for ext in extensions:
+        if path.endswith(ext):
+            return ext
+
+    return default
+
+
+async def process_images_in_series(series_dir: Path) -> dict:
+    """
+    處理單一系列目錄下所有 Markdown 文章中的圖片
+
+    1. 掃描系列目錄下的 .md 檔案
+    2. 找出所有圖片連結 (Markdown 格式: ![alt](url))
+    3. 下載圖片到系列目錄下的 media 子目錄
+    4. 將 Markdown 中的圖片路徑替換為本地路徑
+
+    Args:
+        series_dir: 系列目錄路徑
+
+    Returns:
+        處理統計資訊
+    """
+    stats = {
+        "article_count": 0,
+        "image_count": 0,
+        "download_success": 0,
+        "download_failed": 0,
+    }
+
+    # Markdown 圖片語法的正則表達式: ![alt text](url)
+    image_pattern = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
+
+    if not series_dir.exists() or not series_dir.is_dir():
+        print(f"錯誤: 目錄不存在或不是目錄 - {series_dir}")
+        return stats
+
+    # 建立 media 目錄
+    media_dir = series_dir / "media"
+    media_dir.mkdir(exist_ok=True)
+
+    # 記錄已下載的圖片 URL -> 本地檔名 的映射（避免重複下載同一圖片）
+    url_to_local: dict[str, str] = {}
+
+    # 遍歷系列目錄下的所有 .md 檔案
+    for md_file in series_dir.glob("*.md"):
+        stats["article_count"] += 1
+        print(f"  處理文章: {md_file.name}")
+
+        try:
+            content = md_file.read_text(encoding="utf-8")
+        except Exception as e:
+            print(f"    讀取失敗: {e}")
+            continue
+
+        # 找出所有圖片
+        matches = image_pattern.findall(content)
+        if not matches:
+            print(f"    沒有找到圖片")
+            continue
+
+        print(f"    找到 {len(matches)} 張圖片")
+        new_content = content
+
+        for alt_text, image_url in matches:
+            stats["image_count"] += 1
+
+            # 跳過已經是本地路徑的圖片
+            if image_url.startswith("media/") or image_url.startswith("./media/"):
+                print(f"      跳過 (已是本地路徑): {image_url}")
+                continue
+
+            # 跳過非 HTTP(S) 的 URL
+            if not image_url.startswith("http://") and not image_url.startswith("https://"):
+                print(f"      跳過 (非 HTTP URL): {image_url}")
+                continue
+
+            # 檢查是否已下載過此 URL
+            if image_url in url_to_local:
+                local_filename = url_to_local[image_url]
+                print(f"      使用已下載: {local_filename}")
+            else:
+                # 生成 UUID 檔名
+                ext = get_image_extension(image_url)
+                local_filename = f"{uuid.uuid4()}{ext}"
+                save_path = media_dir / local_filename
+
+                # 下載圖片
+                print(f"      下載中: {image_url[:60]}...")
+                success = await download_image_async(image_url, save_path)
+
+                if success:
+                    stats["download_success"] += 1
+                    url_to_local[image_url] = local_filename
+                    print(f"      已儲存: {local_filename}")
+                else:
+                    stats["download_failed"] += 1
+                    continue
+
+            # 替換 Markdown 中的圖片路徑
+            old_image_md = f"![{alt_text}]({image_url})"
+            new_image_md = f"![{alt_text}](media/{local_filename})"
+            new_content = new_content.replace(old_image_md, new_image_md)
+
+        # 寫回修改後的內容
+        if new_content != content:
+            try:
+                md_file.write_text(new_content, encoding="utf-8")
+                print(f"    已更新文章")
+            except Exception as e:
+                print(f"    寫入失敗: {e}")
+
+    return stats
+
+
+async def process_images_in_articles(articles_dir: Path) -> dict:
+    """
+    處理 articles 目錄下所有 Markdown 文章中的圖片
+
+    1. 掃描所有系列目錄下的 .md 檔案
+    2. 找出所有圖片連結 (Markdown 格式: ![alt](url))
+    3. 下載圖片到系列目錄下的 media 子目錄
+    4. 將 Markdown 中的圖片路徑替換為本地路徑
+
+    Args:
+        articles_dir: articles 目錄路徑
+
+    Returns:
+        處理統計資訊
+    """
+    stats = {
+        "series_count": 0,
+        "article_count": 0,
+        "image_count": 0,
+        "download_success": 0,
+        "download_failed": 0,
+    }
+
+    if not articles_dir.exists():
+        print(f"錯誤: 目錄不存在 - {articles_dir}")
+        return stats
+
+    # 遍歷所有系列目錄
+    for series_dir in articles_dir.iterdir():
+        if not series_dir.is_dir():
+            continue
+
+        # 跳過 media 目錄本身
+        if series_dir.name == "media":
+            continue
+
+        stats["series_count"] += 1
+        print(f"\n處理系列: {series_dir.name}")
+
+        # 處理該系列的圖片
+        series_stats = await process_images_in_series(series_dir)
+
+        # 累加統計
+        stats["article_count"] += series_stats["article_count"]
+        stats["image_count"] += series_stats["image_count"]
+        stats["download_success"] += series_stats["download_success"]
+        stats["download_failed"] += series_stats["download_failed"]
+
+    return stats
+
+
+async def process_images_main():
+    """處理圖片的主程式入口"""
+    script_dir = Path(__file__).parent
+    articles_dir = script_dir / "articles"
+
+    print("=" * 60)
+    print("處理 Markdown 文章中的圖片")
+    print("=" * 60)
+
+    stats = await process_images_in_articles(articles_dir)
+
+    print("\n" + "=" * 60)
+    print("處理完成！統計資訊:")
+    print(f"  處理系列數: {stats['series_count']}")
+    print(f"  處理文章數: {stats['article_count']}")
+    print(f"  圖片總數: {stats['image_count']}")
+    print(f"  下載成功: {stats['download_success']}")
+    print(f"  下載失敗: {stats['download_failed']}")
+    print("=" * 60)
 
 
 async def main():

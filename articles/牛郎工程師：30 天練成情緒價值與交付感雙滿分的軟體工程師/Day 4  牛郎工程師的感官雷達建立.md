@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10377433
 
-![day4](https://hackmd.io/_uploads/B1VoxEVclg.png)
+![day4](media/c622c84f-443f-4beb-bbee-8afa312cd756.png)
 
 > 觀察客人的眉眼與語氣，聽懂他沒說出口的話。
 

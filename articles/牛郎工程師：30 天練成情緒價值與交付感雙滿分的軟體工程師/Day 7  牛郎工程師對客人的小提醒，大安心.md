@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10377992
 
-![day7](https://hackmd.io/_uploads/Syg6gNV5lg.png)
+![day7](media/bc16d3be-a50e-40a8-b0b9-c6e150a1e318.png)
 
 > 如何提前鋪路、輕描淡寫地提醒，讓客人隨時感受到被細心照顧
 

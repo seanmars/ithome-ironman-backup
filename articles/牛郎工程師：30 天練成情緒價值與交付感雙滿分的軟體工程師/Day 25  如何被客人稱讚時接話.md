@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10387512
 
-![day25](https://hackmd.io/_uploads/SJelwNfhgl.png)
+![day25](media/39a2c2b6-3ccf-4b07-aab2-434906c97720.png)
 
 > 當客人稱讚你「好厲害」、「交付超快」、「很懂我」時，如果你只是笑笑或說「沒有啦」，看似謙虛，卻會讓對話快速終止，也錯失一個加深信任的機會。
 

@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10377613
 
-![day5](https://hackmd.io/_uploads/SyWhgV4qgg.png)
+![day5](media/1dc68974-9426-4aed-bb6e-dcecb8e02152.png)
 
 > 「你上次提到的…我幫你注意到了。」這種細膩，也是一種情緒價值。
 
@@ -15,7 +15,7 @@
 ### 如何建立客人小檔案？
 
 * 工具建議：HackMD、Evernote、Notion、Excel、Obsidian 都可以，重點是方便查閱和更新。  
-  ![image](https://hackmd.io/_uploads/HkigSaD9gx.png)  
+  ![image](media/28e56193-de9d-4c37-beab-8d9282bcd92e.png)  
   (示意圖)
 
 #### 舉例：

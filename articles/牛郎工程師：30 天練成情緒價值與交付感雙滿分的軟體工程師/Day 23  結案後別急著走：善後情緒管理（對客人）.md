@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10386379
 
-![day23](https://hackmd.io/_uploads/SyAZa1g2lx.png)
+![day23](media/26c575de-3f91-4511-92c4-ace23e68cb74.png)
 
 > 牛郎工程師的任務，不只是把案子完成，更是在結束後留下餘韻與信任
 

@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10389650
 
-![day28](https://hackmd.io/_uploads/BJyb6rL2le.png)
+![day28](media/3c9be2b9-6cb0-423a-b77d-4962d660a109.png)
 
 在專案結束後，很多工程師習慣低調退場，認為「成果會說話」。  
 但現實是：**如果你不說，沒人會知道你做了什麼**，甚至可能讓功勞被講話大聲、出現在 spotlight 下的人拿走。

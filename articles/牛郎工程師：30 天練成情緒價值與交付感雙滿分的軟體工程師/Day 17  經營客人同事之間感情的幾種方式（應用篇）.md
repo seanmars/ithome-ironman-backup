@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10381814
 
-![day17](https://hackmd.io/_uploads/HJOUgpPige.png)
+![day17](media/b58252e3-7fa5-4782-940e-81feb912bc43.png)
 
 > 技術能讓專案跑起來，但情感能讓人心連結在一起。
 

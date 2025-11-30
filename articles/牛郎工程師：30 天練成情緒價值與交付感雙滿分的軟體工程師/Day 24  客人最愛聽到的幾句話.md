@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10386880
 
-![day24](https://hackmd.io/_uploads/SJF9SxZ3ee.png)
+![day24](media/e5942a85-2140-4ad7-a9a1-bcceca1ce0d4.png)
 
 > 牛郎工程師的語言，就是讓人安心的語言
 

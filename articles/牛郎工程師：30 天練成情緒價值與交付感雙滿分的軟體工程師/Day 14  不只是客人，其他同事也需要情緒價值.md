@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10379779
 
-![day14](https://hackmd.io/_uploads/HkfBDpXjxl.png)
+![day14](media/c2ab513c-a6cc-4b5e-865e-79d2d5945df0.png)
 
 > 不僅僅是你主要客人需要提供情緒價值，其他同事也都需要
 

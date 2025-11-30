@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10383141
 
-![day19](https://hackmd.io/_uploads/S1ERMHcsex.png)  
+![day19](media/9552beda-08d4-49ee-93d3-0f178aacd4be.png)  
 (Ai風格的生成開始跟我的專案一樣慢性失控)
 
 > 壞消息不是不能講，但要會「裝箱」後再交出去。

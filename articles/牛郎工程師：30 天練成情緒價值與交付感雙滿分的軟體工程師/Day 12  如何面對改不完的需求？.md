@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10379290
 
-![day12](https://hackmd.io/_uploads/HkEry8Wiee.png)
+![day12](media/8a404fcb-581b-4958-8ed7-312b65b395cb.png)
 
 > 牛郎工程師在專案執行過程中，經常面臨客人不斷追加需求或頻繁變更的狀況
 

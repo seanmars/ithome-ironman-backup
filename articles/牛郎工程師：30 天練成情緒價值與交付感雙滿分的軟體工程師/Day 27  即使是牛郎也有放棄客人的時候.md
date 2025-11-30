@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10388850
 
-![day27](https://hackmd.io/_uploads/Bkvr73N2xx.png)
+![day27](media/1026e50f-45a8-44c6-8209-a6311e9f8cce.png)
 
 我們在前面講了非常多牛郎工程師的心法與實作，但今天我們要介紹即使是牛郎也有放棄客人的時候。
 

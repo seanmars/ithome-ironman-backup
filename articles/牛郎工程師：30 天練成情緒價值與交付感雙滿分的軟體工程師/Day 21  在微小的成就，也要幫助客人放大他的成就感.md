@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10384777
 
-![day21](https://hackmd.io/_uploads/r1tLLzpiex.png)
+![day21](media/c4ad399f-0a1e-4783-89cc-e7f4c8c1e953.png)
 
 > 技術細節是日常，但對客人來說，每一個小突破都可能是大事件。
 

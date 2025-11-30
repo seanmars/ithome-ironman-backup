@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10391021
 
-![day30](https://hackmd.io/_uploads/rJYxxE_hxe.png)
+![day30](media/750e499a-ba08-4a50-ac92-7815016f75d4.png)
 
 #### 「交付功能」只是個開始
 
@@ -93,4 +93,4 @@ Ya~ 終於完賽了，第一次參賽真的是捏把冷汗，每天起床第一�
 還有猴子不要再出來了為了大家都好。
 
 以上就是全部，謝謝大家這個月的支持，最後附上之前的辦公照。如果有卡娜赫拉信徒可以交流一下~  
-![https://ithelp.ithome.com.tw/upload/images/20250930/20171911VzSBpGggXC.jpg](https://ithelp.ithome.com.tw/upload/images/20250930/20171911VzSBpGggXC.jpg)
+![https://ithelp.ithome.com.tw/upload/images/20250930/20171911VzSBpGggXC.jpg](media/a50a9602-8821-457e-b008-306dff950e47.jpg)

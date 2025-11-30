@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10390507
 
-![day29](https://hackmd.io/_uploads/Bky18oPhlx.png)
+![day29](media/306ef911-548a-4b08-b925-44f4b0b467c5.png)
 
 當你已經掌握主動回報、情緒觀察、進度管理、安心關鍵字、巧妙說話與表功不居等技巧，恭喜你，已經是一位合格的牛郎工程師。  
 但這還不是終點，而是另一種轉變的開始。

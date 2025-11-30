@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10382412
 
-![day18](https://hackmd.io/_uploads/SkEDRjwjle.png)
+![day18](media/8fc8a86a-27e3-46e0-9143-f5d76ad1f294.png)
 
 > 再完美的牛郎工程師，也難免會遇到專案出包的時候。
 

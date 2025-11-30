@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10377839
 
-![day6](https://hackmd.io/_uploads/Hyu3l449lx.png)
+![day6](media/7cf40721-f63f-4f42-a8d6-634617762714.png)
 
 > 牛郎工程師最重要的開場技巧，就是「**遞球術**」。
 

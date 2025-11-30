@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10376850
 
-![image](https://hackmd.io/_uploads/Hkxicdz9ex.png)
+![image](media/a01296bd-3c41-4eb5-8476-d5f0ad24ee17.png)
 
 ### 什麼是牛郎工程師？
 

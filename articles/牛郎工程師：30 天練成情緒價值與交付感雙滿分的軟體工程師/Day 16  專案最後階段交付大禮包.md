@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10380996
 
-![day16](https://hackmd.io/_uploads/HykxZ4E9xl.png)
+![day16](media/acd74594-c08f-4d8d-9cb6-fe8dc5649bf4.png)
 
 > 文件不是為了方便使用，而是為了讓客人覺得「你想得比他還周到」。
 

@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10378219
 
-![day8](https://hackmd.io/_uploads/HJYplVNcxl.png)
+![day8](media/fb249f78-bb0c-44ae-be1e-f69f9bdef6c2.png)
 
 > 幫助客人輕鬆決策，降低思考負擔，提升參與感
 

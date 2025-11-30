@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10377246
 
-![day3](https://hackmd.io/_uploads/BkQKRmN5le.png)
+![day3](media/932f6db8-6d23-4701-9804-dc4f9b0625cc.png)
 
 > 技術達標只是基本，真正厲害的是交付「安心感」
 

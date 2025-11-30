@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10379490
 
-![day13](https://hackmd.io/_uploads/HJPOaPfogx.png)
+![day13](media/b31e4164-220a-4564-88b3-4d99887c39be.png)
 
 > 真正高段位的工程師，不只會解決問題，還能讓客人覺得「**是他自己厲害**」。
 

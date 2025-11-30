@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10385216
 
-![day22](https://hackmd.io/_uploads/SkoTy7Rigl.png)
+![day22](media/19220807-9aba-4f4e-9d46-f137700c74ec.png)
 
 > 為什麼會出現冷處理？
 

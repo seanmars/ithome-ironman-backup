@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10380109
 
-![day15](https://hackmd.io/_uploads/r18sx1Ssge.png)
+![day15](media/cb272ab9-f137-4e73-81ac-d015578571aa.png)
 
 > 專案裡最難的不是技術，而是「看懂人與人之間的微妙平衡」。
 

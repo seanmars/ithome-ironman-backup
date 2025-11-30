@@ -2,7 +2,7 @@
 
 > 原文連結: https://ithelp.ithome.com.tw/articles/10378485
 
-![day9](https://hackmd.io/_uploads/H1W0g4Ncee.png)
+![day9](media/2ba7bdda-4c42-48eb-98fe-2ccfdcfd3a6b.png)
 
 ### 為什麼說「沒有」很危險？
 
