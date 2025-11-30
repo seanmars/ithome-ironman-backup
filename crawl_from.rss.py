@@ -2,15 +2,16 @@
 RSS 文章抓取並轉換為 Markdown
 
 Phase 1: 從 ./rss 目錄讀取所有 RSS XML 檔案，解析文章標題與連結
-Phase 2: 將 RSS 中的 HTML 內容轉換為 Markdown 格式並存檔
+Phase 2: 從文章 URL 抓取真實網頁內容，轉換為 Markdown 格式並存檔
 """
 
-import os
+import asyncio
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from markdownify import markdownify as md
+from playwright.async_api import async_playwright, Playwright
 
 
 def sanitize_filename(title: str) -> str:
@@ -31,21 +32,15 @@ def sanitize_filename(title: str) -> str:
 
 def parse_rss_file(rss_path: Path) -> list[dict]:
     """
-    解析單一 RSS XML 檔案，提取所有文章的標題、連結和內容
+    解析單一 RSS XML 檔案，提取所有文章的標題與連結
 
     Args:
         rss_path: RSS XML 檔案路徑
 
     Returns:
-        包含 title, link, content 的字典列表
+        包含 title, link 的字典列表
     """
     articles = []
-
-    # 定義 RSS 命名空間
-    namespaces = {
-        "content": "http://purl.org/rss/1.0/modules/content/",
-        "dc": "http://purl.org/dc/elements/1.1/",
-    }
 
     try:
         tree = ET.parse(rss_path)
@@ -61,13 +56,15 @@ def parse_rss_file(rss_path: Path) -> list[dict]:
         for item in channel.findall("item"):
             title_elem = item.find("title")
             link_elem = item.find("link")
-            content_elem = item.find("content:encoded", namespaces)
 
             title = title_elem.text if title_elem is not None else "Untitled"
             link = link_elem.text if link_elem is not None else ""
-            content = content_elem.text if content_elem is not None else ""
 
-            articles.append({"title": title, "link": link, "content": content})
+            # 清理連結（移除 RSS 追蹤參數）
+            if link:
+                link = link.split("?")[0]
+
+            articles.append({"title": title, "link": link})
 
         print(f"從 {rss_path.name} 解析出 {len(articles)} 篇文章")
 
@@ -119,28 +116,79 @@ def convert_html_to_markdown(html_content: str) -> str:
         return ""
 
     # 使用 markdownify 轉換
-    markdown_content = md(html_content, heading_style="ATX", strip=["script", "style"])
+    markdown_content = md(
+        html_content,
+        heading_style="ATX",
+        strip=["script", "style", "button"],
+    )
     return markdown_content.strip()
 
 
-def save_article_as_markdown(article: dict, output_dir: Path) -> bool:
+async def fetch_article_content(playwright: Playwright, url: str) -> str:
+    """
+    使用 Playwright 抓取文章網頁的主要內容
+
+    Args:
+        playwright: Playwright 實例
+        url: 文章 URL
+
+    Returns:
+        文章的 HTML 內容
+    """
+    webkit = playwright.webkit
+    browser = await webkit.launch(headless=True)
+    try:
+        context = await browser.new_context()
+        page = await context.new_page()
+
+        response = await page.goto(url, wait_until="domcontentloaded")
+        if response is None or response.status != 200:
+            print(f"  警告: 無法載入頁面 {url}")
+            return ""
+
+        # iThome 文章主要內容的選擇器
+        # 文章內容通常在 .markdown-body 或 .qa-markdown 內
+        content_selectors = [
+            "div.markdown-body",
+            "div.qa-markdown",
+            "article.article-content",
+            "div.article-content",
+        ]
+
+        html_content = ""
+        for selector in content_selectors:
+            try:
+                element = page.locator(selector).first
+                if await element.count() > 0:
+                    html_content = await element.inner_html()
+                    break
+            except Exception:
+                continue
+
+        return html_content
+
+    except Exception as e:
+        print(f"  錯誤: 抓取 {url} 時發生錯誤 - {e}")
+        return ""
+    finally:
+        await browser.close()
+
+
+def save_article_as_markdown(
+    title: str, link: str, markdown_content: str, output_dir: Path
+) -> bool:
     """
     將單篇文章儲存為 Markdown 檔案
 
     Args:
-        article: 包含 title, link, content 的字典
+        title: 文章標題
+        link: 原始連結
+        markdown_content: Markdown 格式的內容
         output_dir: 輸出目錄路徑
 
     Returns:
         是否成功儲存
     """
-    title = article.get("title", "Untitled")
-    link = article.get("link", "")
-    content = article.get("content", "")
-
-    # 轉換 HTML 為 Markdown
-    markdown_content = convert_html_to_markdown(content)
-
     # 建立完整的 Markdown 文件（包含標題和原始連結）
     full_content = f"# {title}\n\n"
     if link:
@@ -160,7 +208,55 @@ def save_article_as_markdown(article: dict, output_dir: Path) -> bool:
         return False
 
 
-def main():
+async def process_articles(articles: list[dict], output_dir: Path) -> int:
+    """
+    處理所有文章：抓取網頁內容並轉換為 Markdown
+
+    Args:
+        articles: 文章列表
+        output_dir: 輸出目錄
+
+    Returns:
+        成功處理的文章數量
+    """
+    # 建立輸出目錄
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    success_count = 0
+
+    async with async_playwright() as playwright:
+        for i, article in enumerate(articles, 1):
+            title = article["title"]
+            link = article["link"]
+
+            print(f"  處理中 ({i}/{len(articles)}): {title[:50]}...")
+
+            if not link:
+                print(f"    跳過: 沒有連結")
+                continue
+
+            # 抓取網頁內容
+            html_content = await fetch_article_content(playwright, link)
+
+            if not html_content:
+                print(f"    警告: 無法取得內容")
+                continue
+
+            # 轉換為 Markdown
+            markdown_content = convert_html_to_markdown(html_content)
+
+            if not markdown_content:
+                print(f"    警告: 轉換後內容為空")
+                continue
+
+            # 儲存檔案
+            if save_article_as_markdown(title, link, markdown_content, output_dir):
+                success_count += 1
+
+    return success_count
+
+
+async def main():
     """主程式入口"""
     # 設定路徑
     script_dir = Path(__file__).parent
@@ -185,17 +281,10 @@ def main():
     for i, article in enumerate(articles, 1):
         print(f"  {i}. {article['title']}")
 
-    # Phase 2: 轉換並儲存為 Markdown
-    print(f"\n[Phase 2] 轉換文章並儲存至 {output_dir}...")
+    # Phase 2: 抓取網頁並轉換為 Markdown
+    print(f"\n[Phase 2] 從網頁抓取內容並儲存至 {output_dir}...")
 
-    # 建立輸出目錄
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    success_count = 0
-    for i, article in enumerate(articles, 1):
-        print(f"  處理中 ({i}/{len(articles)}): {article['title'][:50]}...")
-        if save_article_as_markdown(article, output_dir):
-            success_count += 1
+    success_count = await process_articles(articles, output_dir)
 
     print("\n" + "=" * 50)
     print(f"完成！成功儲存 {success_count}/{len(articles)} 篇文章")
@@ -204,4 +293,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
