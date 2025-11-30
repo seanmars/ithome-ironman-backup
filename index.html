@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITHome 鐵人賽文章瀏覽器</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <style>
+        /* Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --sidebar-bg: #1e293b;
+            --sidebar-text: #e2e8f0;
+            --sidebar-hover: #334155;
+            --content-bg: #ffffff;
+            --text-color: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --code-bg: #f1f5f9;
+            --blockquote-border: #3b82f6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            min-width: 320px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .sidebar-header p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 1rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            padding: 0.5rem 1.5rem;
+        }
+
+        .nav-list {
+            list-style: none;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-item:hover {
+            background-color: var(--sidebar-hover);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+            color: #ffffff;
+        }
+
+        .nav-item-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .nav-item-text {
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.15s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .back-button:hover {
+            background-color: var(--sidebar-hover);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-header {
+            background-color: var(--content-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-muted);
+        }
+
+        .content-body {
+            flex: 1;
+            padding: 2rem;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .welcome-screen h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .welcome-screen p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .welcome-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Series Grid */
+        .series-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem 0;
+        }
+
+        .series-card {
+            background-color: var(--content-bg);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .series-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-color: var(--primary-color);
+        }
+
+        .series-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            line-height: 1.4;
+        }
+
+        .series-card p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        /* Article List */
+        .article-list {
+            list-style: none;
+        }
+
+        .article-item {
+            background-color: var(--content-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.15s ease;
+        }
+
+        .article-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .article-item a {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            text-decoration: none;
+            color: var(--text-color);
+            gap: 1rem;
+        }
+
+        .article-day {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            white-space: nowrap;
+        }
+
+        .article-title {
+            font-size: 1rem;
+            flex: 1;
+        }
+
+        /* Markdown Content */
+        .markdown-content {
+            background-color: var(--content-bg);
+            border-radius: 0.75rem;
+            padding: 2.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .markdown-content h1 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .markdown-content h2 {
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem;
+            color: var(--text-color);
+        }
+
+        .markdown-content h3 {
+            font-size: 1.25rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--text-color);
+        }
+
+        .markdown-content p {
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .markdown-content a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .markdown-content a:hover {
+            text-decoration: underline;
+        }
+
+        .markdown-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .markdown-content ul,
+        .markdown-content ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .markdown-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .markdown-content blockquote {
+            border-left: 4px solid var(--blockquote-border);
+            padding: 0.5rem 1rem;
+            margin: 1rem 0;
+            background-color: var(--code-bg);
+            border-radius: 0 0.5rem 0.5rem 0;
+            color: var(--text-muted);
+        }
+
+        .markdown-content code {
+            background-color: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.875em;
+        }
+
+        .markdown-content pre {
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        .markdown-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+
+        .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .markdown-content th,
+        .markdown-content td {
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .markdown-content th {
+            background-color: var(--code-bg);
+            font-weight: 600;
+        }
+
+        .markdown-content hr {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 2rem 0;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Error State */
+        .error-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #dc2626;
+        }
+
+        .error-state h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        .error-state p {
+            color: var(--text-muted);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                min-width: 100%;
+                height: auto;
+                position: relative;
+                max-height: 50vh;
+            }
+
+            .content-body {
+                padding: 1rem;
+            }
+
+            .markdown-content {
+                padding: 1.5rem;
+            }
+
+            .series-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Scrollbar Styling */
+        .sidebar-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>📚 ITHome 鐵人賽</h1>
+                <p>文章瀏覽器</p>
+            </div>
+            <div class="sidebar-content" id="sidebar-nav">
+                <!-- Dynamic content -->
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <nav class="breadcrumb" id="breadcrumb">
+                    <a href="#/">首頁</a>
+                </nav>
+            </header>
+            <div class="content-body" id="content">
+                <!-- Dynamic content -->
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ================================
+        // Configuration
+        // ================================
+        const CONFIG = {
+            owner: 'seanmars',
+            repo: 'ithome-ironman-scraper',
+            branch: 'main',
+            articlesPath: 'articles',
+            cacheKey: 'ithome-articles-cache',
+            cacheTTL: 30 * 60 * 1000 // 30 minutes
+        };
+
+        const API_BASE = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents`;
+        const RAW_BASE = `https://raw.githubusercontent.com/${CONFIG.owner}/${CONFIG.repo}/${CONFIG.branch}`;
+
+        // ================================
+        // State Management
+        // ================================
+        let state = {
+            series: [],
+            currentSeries: null,
+            articles: [],
+            currentArticle: null
+        };
+
+        // ================================
+        // Cache Utilities
+        // ================================
+        function getCache(key) {
+            try {
+                const cached = localStorage.getItem(key);
+                if (!cached) return null;
+                
+                const { data, timestamp } = JSON.parse(cached);
+                if (Date.now() - timestamp > CONFIG.cacheTTL) {
+                    localStorage.removeItem(key);
+                    return null;
+                }
+                return data;
+            } catch {
+                return null;
+            }
+        }
+
+        function setCache(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify({
+                    data,
+                    timestamp: Date.now()
+                }));
+            } catch {
+                // localStorage might be full or disabled
+            }
+        }
+
+        // ================================
+        // API Functions
+        // ================================
+        async function fetchWithCache(url, cacheKey) {
+            const cached = getCache(cacheKey);
+            if (cached) return cached;
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            setCache(cacheKey, data);
+            return data;
+        }
+
+        async function fetchSeriesList() {
+            const url = `${API_BASE}/${CONFIG.articlesPath}`;
+            const data = await fetchWithCache(url, `${CONFIG.cacheKey}-series`);
+            return data.filter(item => item.type === 'dir');
+        }
+
+        async function fetchArticleList(seriesName) {
+            const encodedPath = `${CONFIG.articlesPath}/${encodeURIComponent(seriesName)}`;
+            const url = `${API_BASE}/${encodedPath}`;
+            const cacheKey = `${CONFIG.cacheKey}-articles-${seriesName}`;
+            
+            const data = await fetchWithCache(url, cacheKey);
+            return data.filter(item => item.type === 'file' && item.name.endsWith('.md'));
+        }
+
+        async function fetchMarkdownContent(seriesName, fileName) {
+            const path = `${CONFIG.articlesPath}/${encodeURIComponent(seriesName)}/${encodeURIComponent(fileName)}`;
+            const url = `${RAW_BASE}/${path}`;
+            
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            return response.text();
+        }
+
+        // ================================
+        // Parsing Utilities
+        // ================================
+        function extractDayNumber(fileName) {
+            const match = fileName.match(/Day\s+(\d+)/i);
+            return match ? parseInt(match[1], 10) : 999;
+        }
+
+        function sortArticles(articles) {
+            return [...articles].sort((a, b) => {
+                return extractDayNumber(a.name) - extractDayNumber(b.name);
+            });
+        }
+
+        function rewriteImagePaths(markdown, seriesName) {
+            // Replace relative media paths with absolute raw.githubusercontent.com URLs
+            const basePath = `${RAW_BASE}/${CONFIG.articlesPath}/${encodeURIComponent(seriesName)}`;
+            return markdown.replace(
+                /!\[([^\]]*)\]\(media\/([^)]+)\)/g,
+                (match, alt, imagePath) => {
+                    const imageUrl = `${basePath}/media/${encodeURIComponent(imagePath)}`;
+                    return `![${alt}](${imageUrl})`;
+                }
+            );
+        }
+
+        function getArticleTitle(fileName) {
+            // Remove .md extension and clean up the title
+            return fileName.replace(/\.md$/, '');
+        }
+
+        function getDayLabel(fileName) {
+            const match = fileName.match(/Day\s+(\d+)/i);
+            return match ? `Day ${match[1]}` : '';
+        }
+
+        // ================================
+        // Render Functions
+        // ================================
+        function renderLoading(message = '載入中...') {
+            return `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        function renderError(message) {
+            return `
+                <div class="error-state">
+                    <h3>⚠️ 發生錯誤</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        function renderWelcome() {
+            return `
+                <div class="welcome-screen">
+                    <div class="welcome-icon">📖</div>
+                    <h2>歡迎來到 ITHome 鐵人賽文章瀏覽器</h2>
+                    <p>從左側選單選擇一個系列開始閱讀精彩的技術文章</p>
+                </div>
+            `;
+        }
+
+        function renderSeriesGrid(series) {
+            if (series.length === 0) {
+                return `
+                    <div class="welcome-screen">
+                        <h2>目前沒有文章系列</h2>
+                        <p>請稍後再試</p>
+                    </div>
+                `;
+            }
+
+            const cards = series.map(s => `
+                <div class="series-card" onclick="navigateTo('${encodeURIComponent(s.name)}')">
+                    <h3>${s.name}</h3>
+                    <p>點擊查看文章列表</p>
+                </div>
+            `).join('');
+
+            return `
+                <h2 style="margin-bottom: 1.5rem;">📚 文章系列</h2>
+                <div class="series-grid">${cards}</div>
+            `;
+        }
+
+        function renderArticleList(articles, seriesName) {
+            if (articles.length === 0) {
+                return `
+                    <div class="welcome-screen">
+                        <h2>此系列目前沒有文章</h2>
+                    </div>
+                `;
+            }
+
+            const items = articles.map(article => {
+                const title = getArticleTitle(article.name);
+                const dayLabel = getDayLabel(article.name);
+                const articlePath = `${encodeURIComponent(seriesName)}/${encodeURIComponent(article.name)}`;
+                
+                return `
+                    <li class="article-item">
+                        <a href="#/${articlePath}">
+                            ${dayLabel ? `<span class="article-day">${dayLabel}</span>` : ''}
+                            <span class="article-title">${title}</span>
+                        </a>
+                    </li>
+                `;
+            }).join('');
+
+            return `
+                <h2 style="margin-bottom: 1.5rem;">📝 ${seriesName}</h2>
+                <ul class="article-list">${items}</ul>
+            `;
+        }
+
+        function renderMarkdown(markdown) {
+            const html = marked.parse(markdown);
+            const safeHtml = DOMPurify.sanitize(html);
+            return `<div class="markdown-content">${safeHtml}</div>`;
+        }
+
+        function renderSidebar(series, currentSeries = null, articles = []) {
+            let content = '';
+
+            if (currentSeries) {
+                // Show back button and article list
+                content += `
+                    <div class="back-button" onclick="navigateTo('')">
+                        ← 返回系列列表
+                    </div>
+                    <div class="nav-section">
+                        <div class="nav-section-title">${currentSeries}</div>
+                        <ul class="nav-list">
+                            ${articles.map(article => {
+                                const dayLabel = getDayLabel(article.name);
+                                const isActive = state.currentArticle === article.name;
+                                const articlePath = `${encodeURIComponent(currentSeries)}/${encodeURIComponent(article.name)}`;
+                                return `
+                                    <li class="nav-item ${isActive ? 'active' : ''}" 
+                                        onclick="navigateTo('${articlePath}')">
+                                        <span class="nav-item-text">${dayLabel || article.name}</span>
+                                    </li>
+                                `;
+                            }).join('')}
+                        </ul>
+                    </div>
+                `;
+            } else {
+                // Show series list
+                content += `
+                    <div class="nav-section">
+                        <div class="nav-section-title">文章系列</div>
+                        <ul class="nav-list">
+                            ${series.map(s => `
+                                <li class="nav-item" onclick="navigateTo('${encodeURIComponent(s.name)}')">
+                                    <span class="nav-item-icon">📁</span>
+                                    <span class="nav-item-text">${s.name}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            document.getElementById('sidebar-nav').innerHTML = content;
+        }
+
+        function renderBreadcrumb(series = null, article = null) {
+            let html = '<a href="#/">首頁</a>';
+
+            if (series) {
+                html += `
+                    <span class="breadcrumb-separator">/</span>
+                    <a href="#/${encodeURIComponent(series)}">${series}</a>
+                `;
+            }
+
+            if (article) {
+                const title = getArticleTitle(article);
+                html += `
+                    <span class="breadcrumb-separator">/</span>
+                    <span>${title}</span>
+                `;
+            }
+
+            document.getElementById('breadcrumb').innerHTML = html;
+        }
+
+        // ================================
+        // Navigation & Routing
+        // ================================
+        function navigateTo(path) {
+            window.location.hash = `/${path}`;
+        }
+
+        function parseHash() {
+            const hash = window.location.hash.slice(2); // Remove '#/'
+            if (!hash) return { series: null, article: null };
+
+            const parts = hash.split('/').map(decodeURIComponent);
+            return {
+                series: parts[0] || null,
+                article: parts[1] || null
+            };
+        }
+
+        async function handleRoute() {
+            const content = document.getElementById('content');
+            const { series, article } = parseHash();
+
+            try {
+                // Fetch series list if not cached
+                if (state.series.length === 0) {
+                    content.innerHTML = renderLoading('載入系列列表...');
+                    state.series = await fetchSeriesList();
+                }
+
+                if (!series) {
+                    // Home page - show series grid
+                    state.currentSeries = null;
+                    state.currentArticle = null;
+                    state.articles = [];
+                    
+                    renderSidebar(state.series);
+                    renderBreadcrumb();
+                    content.innerHTML = renderSeriesGrid(state.series);
+                    
+                } else if (!article) {
+                    // Series page - show article list
+                    state.currentSeries = series;
+                    state.currentArticle = null;
+                    
+                    content.innerHTML = renderLoading('載入文章列表...');
+                    
+                    const articles = await fetchArticleList(series);
+                    state.articles = sortArticles(articles);
+                    
+                    renderSidebar(state.series, series, state.articles);
+                    renderBreadcrumb(series);
+                    content.innerHTML = renderArticleList(state.articles, series);
+                    
+                } else {
+                    // Article page - show markdown content
+                    state.currentSeries = series;
+                    state.currentArticle = article;
+                    
+                    // Fetch articles list if not cached for this series
+                    if (state.articles.length === 0 || state.currentSeries !== series) {
+                        const articles = await fetchArticleList(series);
+                        state.articles = sortArticles(articles);
+                    }
+                    
+                    renderSidebar(state.series, series, state.articles);
+                    renderBreadcrumb(series, article);
+                    
+                    content.innerHTML = renderLoading('載入文章內容...');
+                    
+                    let markdown = await fetchMarkdownContent(series, article);
+                    markdown = rewriteImagePaths(markdown, series);
+                    
+                    content.innerHTML = renderMarkdown(markdown);
+                    
+                    // Scroll to top
+                    window.scrollTo(0, 0);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                content.innerHTML = renderError(error.message);
+            }
+        }
+
+        // ================================
+        // Initialize
+        // ================================
+        window.addEventListener('hashchange', handleRoute);
+        window.addEventListener('DOMContentLoaded', () => {
+            // Set default hash if none
+            if (!window.location.hash) {
+                window.location.hash = '/';
+            }
+            handleRoute();
+        });
+    </script>
+</body>
+</html>
